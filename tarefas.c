@@ -3,11 +3,17 @@
 #include "tarefas.h"
 
 ERROS criar(Tarefa tarefas[], int *pos) {
+    
     if (*pos >= TOTAL)
         return MAX_TAREFA;
 
-    printf("Entre com a prioridade: ");
-    scanf("%d", &tarefas[*pos].prioridade);
+    do {
+        printf("Entre com a prioridade (1 a 10): ");
+        scanf("%d", &tarefas[*pos].prioridade);
+        if (tarefas[*pos].prioridade < 1 || tarefas[*pos].prioridade > 10)
+            printf("Prioridade inválida! Tente novamente.\n");
+    } while (tarefas[*pos].prioridade < 1 || tarefas[*pos].prioridade > 10);
+
     clearBuffer();
 
     printf("Entre com a categoria: ");
@@ -22,6 +28,7 @@ ERROS criar(Tarefa tarefas[], int *pos) {
 
     return OK;
 }
+
 
 
 ERROS deletar(Tarefa tarefas[], int *pos){

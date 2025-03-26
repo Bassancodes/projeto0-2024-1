@@ -122,44 +122,59 @@ ERROS exportar(Tarefa tarefas[], int *pos) {
 }
 
 
-ERROS salvar(Tarefa tarefas[], int *pos){
-    FILE *f = fopen("tarefas.bin", "wb");
-    if(f == NULL)
+ERROS salvar(Tarefa tarefas[], int *pos) {
+    char nome_arquivo[100];
+    printf("Digite o nome do arquivo para salvar (ex: tarefas.bin): ");
+    clearBuffer();
+    fgets(nome_arquivo, 100, stdin);
+    nome_arquivo[strcspn(nome_arquivo, "\n")] = 0;
+
+    FILE *f = fopen(nome_arquivo, "wb");
+    if (f == NULL)
         return ABRIR;
 
     int qtd = fwrite(tarefas, TOTAL, sizeof(Tarefa), f);
-    if(qtd == 0)
+    if (qtd == 0)
         return ESCREVER;
 
     qtd = fwrite(pos, 1, sizeof(int), f);
-    if(qtd == 0)
+    if (qtd == 0)
         return ESCREVER;
 
-    if(fclose(f))
+    if (fclose(f))
         return FECHAR;
 
+    printf("Tarefas salvas em '%s'\n", nome_arquivo);
     return OK;
 }
 
-ERROS carregar(Tarefa tarefas[], int *pos){
-    FILE *f = fopen("tarefas.bin", "rb");
-    if(f == NULL)
+
+ERROS carregar(Tarefa tarefas[], int *pos) {
+    char nome_arquivo[100];
+    printf("Digite o nome do arquivo para carregar (ex: tarefas.bin): ");
+    clearBuffer();
+    fgets(nome_arquivo, 100, stdin);
+    nome_arquivo[strcspn(nome_arquivo, "\n")] = 0;
+
+    FILE *f = fopen(nome_arquivo, "rb");
+    if (f == NULL)
         return ABRIR;
 
     int qtd = fread(tarefas, TOTAL, sizeof(Tarefa), f);
-    if(qtd == 0)
+    if (qtd == 0)
         return LER;
 
     qtd = fread(pos, 1, sizeof(int), f);
-    if(qtd == 0)
+    if (qtd == 0)
         return LER;
 
-    if(fclose(f))
+    if (fclose(f))
         return FECHAR;
 
+    printf("Tarefas carregadas de '%s'\n", nome_arquivo);
     return OK;
-
 }
+
 
 void clearBuffer(){
     int c;

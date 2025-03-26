@@ -83,6 +83,44 @@ ERROS listar(Tarefa tarefas[], int *pos){
     return OK;
 }
 
+ERROS exportar(Tarefa tarefas[], int *pos) {
+    if (*pos == 0)
+        return SEM_TAREFAS;
+
+    char filtro[TAM_CATEGORIA];
+    char nome_arquivo[100];
+    printf("Digite a categoria para exportar (pressione ENTER para todas): ");
+    clearBuffer();
+    fgets(filtro, TAM_CATEGORIA, stdin);
+    filtro[strcspn(filtro, "\n")] = 0;
+
+    printf("Digite o nome do arquivo a ser gerado (ex: tarefas.txt): ");
+    fgets(nome_arquivo, 100, stdin);
+    nome_arquivo[strcspn(nome_arquivo, "\n")] = 0;
+
+    FILE *f = fopen(nome_arquivo, "w");
+    if (f == NULL)
+        return ABRIR;
+
+    int encontrou = 0;
+
+    for (int i = 0; i < *pos; i++) {
+        if (strlen(filtro) == 0 || strcmp(tarefas[i].categoria, filtro) == 0) {
+            fprintf(f, "%d\t%s\t%s\n", tarefas[i].prioridade, tarefas[i].categoria, tarefas[i].descricao);
+            encontrou = 1;
+        }
+    }
+
+    fclose(f);
+
+    if (!encontrou)
+        printf("Nenhuma tarefa encontrada para exportar.\n");
+    else
+        printf("Tarefas exportadas com sucesso para '%s'\n", nome_arquivo);
+
+    return OK;
+}
+
 
 ERROS salvar(Tarefa tarefas[], int *pos){
     FILE *f = fopen("tarefas.bin", "wb");

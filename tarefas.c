@@ -59,15 +59,30 @@ ERROS listar(Tarefa tarefas[], int *pos){
     if(*pos == 0)
         return SEM_TAREFAS;
 
-    for(int i=0; i<*pos; i++){
-        printf("Pos: %d\t", i+1);
-        printf("Prioridade: %d\t", tarefas[i].prioridade);
-        printf("Categoria: %s\t", tarefas[i].categoria);
-        printf("Descricao: %s\n", tarefas[i].descricao);
+    char filtro[TAM_CATEGORIA];
+    printf("Digite a categoria para filtrar (pressione ENTER para listar todas): ");
+    clearBuffer();
+    fgets(filtro, TAM_CATEGORIA, stdin);
+    filtro[strcspn(filtro, "\n")] = 0;
+
+    int encontrou = 0;
+
+    for(int i = 0; i < *pos; i++){
+        if(strlen(filtro) == 0 || strcmp(tarefas[i].categoria, filtro) == 0){
+            printf("Pos: %d\t", i+1);
+            printf("Prioridade: %d\t", tarefas[i].prioridade);
+            printf("Categoria: %s\t", tarefas[i].categoria);
+            printf("Descricao: %s\n", tarefas[i].descricao);
+            encontrou = 1;
+        }
     }
+
+    if(!encontrou)
+        printf("Nenhuma tarefa encontrada para a categoria informada.\n");
 
     return OK;
 }
+
 
 ERROS salvar(Tarefa tarefas[], int *pos){
     FILE *f = fopen("tarefas.bin", "wb");

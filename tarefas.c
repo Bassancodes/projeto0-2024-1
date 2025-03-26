@@ -2,23 +2,34 @@
 #include <string.h>
 #include "tarefas.h"
 
-ERROS criar(Tarefa tarefas[], int *pos){
-    if(*pos >= TOTAL)
+ERROS criar(Tarefa tarefas[], int *pos) {
+
+    if (*pos >= TOTAL)
         return MAX_TAREFA;
 
-    printf("Entre com a prioridade: ");
-    scanf("%d", &tarefas[*pos].prioridade);
+    do {
+        printf("Entre com a prioridade (1 a 10): ");
+        scanf("%d", &tarefas[*pos].prioridade);
+        if (tarefas[*pos].prioridade < 1 || tarefas[*pos].prioridade > 10)
+            printf("Prioridade inválida! Tente novamente.\n");
+    } while (tarefas[*pos].prioridade < 1 || tarefas[*pos].prioridade > 10);
+
     clearBuffer();
+
     printf("Entre com a categoria: ");
-    fgets(tarefas[*pos].categoria, 100, stdin);
+    fgets(tarefas[*pos].categoria, TAM_CATEGORIA, stdin);
+    tarefas[*pos].categoria[strcspn(tarefas[*pos].categoria, "\n")] = 0;
 
     printf("Entre com a descricao: ");
-    fgets(tarefas[*pos].descricao, 300, stdin);
+    fgets(tarefas[*pos].descricao, TAM_DESCRICAO, stdin);
+    tarefas[*pos].descricao[strcspn(tarefas[*pos].descricao, "\n")] = 0;
 
     *pos = *pos + 1;
 
     return OK;
 }
+
+
 
 ERROS deletar(Tarefa tarefas[], int *pos){
     // teste se existem tarefas
@@ -48,15 +59,30 @@ ERROS listar(Tarefa tarefas[], int *pos){
     if(*pos == 0)
         return SEM_TAREFAS;
 
-    for(int i=0; i<*pos; i++){
-        printf("Pos: %d\t", i+1);
-        printf("Prioridade: %d\t", tarefas[i].prioridade);
-        printf("Categoria: %s\t", tarefas[i].categoria);
-        printf("Descricao: %s\n", tarefas[i].descricao);
+    char filtro[TAM_CATEGORIA];
+    printf("Digite a categoria para filtrar (pressione ENTER para listar todas): ");
+    clearBuffer();
+    fgets(filtro, TAM_CATEGORIA, stdin);
+    filtro[strcspn(filtro, "\n")] = 0;
+
+    int encontrou = 0;
+
+    for(int i = 0; i < *pos; i++){
+        if(strlen(filtro) == 0 || strcmp(tarefas[i].categoria, filtro) == 0){
+            printf("Pos: %d\t", i+1);
+            printf("Prioridade: %d\t", tarefas[i].prioridade);
+            printf("Categoria: %s\t", tarefas[i].categoria);
+            printf("Descricao: %s\n", tarefas[i].descricao);
+            encontrou = 1;
+        }
     }
+
+    if(!encontrou)
+        printf("Nenhuma tarefa encontrada para a categoria informada.\n");
 
     return OK;
 }
+
 
 ERROS salvar(Tarefa tarefas[], int *pos){
     FILE *f = fopen("tarefas.bin", "wb");

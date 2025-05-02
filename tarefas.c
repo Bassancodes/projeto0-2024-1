@@ -2,23 +2,34 @@
 #include <string.h>
 #include "tarefas.h"
 
-ERROS criar(Tarefa tarefas[], int *pos){
-    if(*pos >= TOTAL)
+ERROS criar(Tarefa tarefas[], int *pos) {
+
+    if (*pos >= TOTAL)
         return MAX_TAREFA;
 
-    printf("Entre com a prioridade: ");
-    scanf("%d", &tarefas[*pos].prioridade);
+    do {
+        printf("Entre com a prioridade (1 a 10): ");
+        scanf("%d", &tarefas[*pos].prioridade);
+        if (tarefas[*pos].prioridade < 1 || tarefas[*pos].prioridade > 10)
+            printf("Prioridade inválida! Tente novamente.\n");
+    } while (tarefas[*pos].prioridade < 1 || tarefas[*pos].prioridade > 10);
+
     clearBuffer();
+
     printf("Entre com a categoria: ");
-    fgets(tarefas[*pos].categoria, 100, stdin);
+    fgets(tarefas[*pos].categoria, TAM_CATEGORIA, stdin);
+    tarefas[*pos].categoria[strcspn(tarefas[*pos].categoria, "\n")] = 0;
 
     printf("Entre com a descricao: ");
-    fgets(tarefas[*pos].descricao, 300, stdin);
+    fgets(tarefas[*pos].descricao, TAM_DESCRICAO, stdin);
+    tarefas[*pos].descricao[strcspn(tarefas[*pos].descricao, "\n")] = 0;
 
     *pos = *pos + 1;
 
     return OK;
 }
+
+
 
 ERROS deletar(Tarefa tarefas[], int *pos){
     // teste se existem tarefas
@@ -48,54 +59,122 @@ ERROS listar(Tarefa tarefas[], int *pos){
     if(*pos == 0)
         return SEM_TAREFAS;
 
-    for(int i=0; i<*pos; i++){
-        printf("Pos: %d\t", i+1);
-        printf("Prioridade: %d\t", tarefas[i].prioridade);
-        printf("Categoria: %s\t", tarefas[i].categoria);
-        printf("Descricao: %s\n", tarefas[i].descricao);
+    char filtro[TAM_CATEGORIA];
+    printf("Digite a categoria para filtrar (pressione ENTER para listar todas): ");
+    clearBuffer();
+    fgets(filtro, TAM_CATEGORIA, stdin);
+    filtro[strcspn(filtro, "\n")] = 0;
+
+    int encontrou = 0;
+
+    for(int i = 0; i < *pos; i++){
+        if(strlen(filtro) == 0 || strcmp(tarefas[i].categoria, filtro) == 0){
+            printf("Pos: %d\t", i+1);
+            printf("Prioridade: %d\t", tarefas[i].prioridade);
+            printf("Categoria: %s\t", tarefas[i].categoria);
+            printf("Descricao: %s\n", tarefas[i].descricao);
+            encontrou = 1;
+        }
     }
+
+    if(!encontrou)
+        printf("Nenhuma tarefa encontrada para a categoria informada.\n");
 
     return OK;
 }
 
-ERROS salvar(Tarefa tarefas[], int *pos){
-    FILE *f = fopen("tarefas.bin", "wb");
-    if(f == NULL)
+ERROS exportar(Tarefa tarefas[], int *pos) {
+    if (*pos == 0)
+        return SEM_TAREFAS;
+
+    char filtro[TAM_CATEGORIA];
+    char nome_arquivo[100];
+    printf("Digite a categoria para exportar (pressione ENTER para todas): ");
+    clearBuffer();
+    fgets(filtro, TAM_CATEGORIA, stdin);
+    filtro[strcspn(filtro, "\n")] = 0;
+
+    printf("Digite o nome do arquivo a ser gerado (ex: tarefas.txt): ");
+    fgets(nome_arquivo, 100, stdin);
+    nome_arquivo[strcspn(nome_arquivo, "\n")] = 0;
+
+    FILE *f = fopen(nome_arquivo, "w");
+    if (f == NULL)
+        return ABRIR;
+
+    int encontrou = 0;
+
+    for (int i = 0; i < *pos; i++) {
+        if (strlen(filtro) == 0 || strcmp(tarefas[i].categoria, filtro) == 0) {
+            fprintf(f, "%d\t%s\t%s\n", tarefas[i].prioridade, tarefas[i].categoria, tarefas[i].descricao);
+            encontrou = 1;
+        }
+    }
+
+    fclose(f);
+
+    if (!encontrou)
+        printf("Nenhuma tarefa encontrada para exportar.\n");
+    else
+        printf("Tarefas exportadas com sucesso para '%s'\n", nome_arquivo);
+
+    return OK;
+}
+
+
+ERROS salvar(Tarefa tarefas[], int *pos) {
+    char nome_arquivo[100];
+    printf("Digite o nome do arquivo para salvar (ex: tarefas.bin): ");
+    clearBuffer();
+    fgets(nome_arquivo, 100, stdin);
+    nome_arquivo[strcspn(nome_arquivo, "\n")] = 0;
+
+    FILE *f = fopen(nome_arquivo, "wb");
+    if (f == NULL)
         return ABRIR;
 
     int qtd = fwrite(tarefas, TOTAL, sizeof(Tarefa), f);
-    if(qtd == 0)
+    if (qtd == 0)
         return ESCREVER;
 
     qtd = fwrite(pos, 1, sizeof(int), f);
-    if(qtd == 0)
+    if (qtd == 0)
         return ESCREVER;
 
-    if(fclose(f))
+    if (fclose(f))
         return FECHAR;
 
+    printf("Tarefas salvas em '%s'\n", nome_arquivo);
     return OK;
 }
 
-ERROS carregar(Tarefa tarefas[], int *pos){
-    FILE *f = fopen("tarefas.bin", "rb");
-    if(f == NULL)
+
+ERROS carregar(Tarefa tarefas[], int *pos) {
+    char nome_arquivo[100];
+    printf("Digite o nome do arquivo para carregar (ex: tarefas.bin): ");
+    clearBuffer();
+    fgets(nome_arquivo, 100, stdin);
+    nome_arquivo[strcspn(nome_arquivo, "\n")] = 0;
+
+    FILE *f = fopen(nome_arquivo, "rb");
+    if (f == NULL)
         return ABRIR;
 
     int qtd = fread(tarefas, TOTAL, sizeof(Tarefa), f);
-    if(qtd == 0)
+    if (qtd == 0)
         return LER;
 
     qtd = fread(pos, 1, sizeof(int), f);
-    if(qtd == 0)
+    if (qtd == 0)
         return LER;
 
-    if(fclose(f))
+    if (fclose(f))
         return FECHAR;
 
+    printf("Tarefas carregadas de '%s'\n", nome_arquivo);
     return OK;
-
 }
+
 
 void clearBuffer(){
     int c;

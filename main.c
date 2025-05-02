@@ -23,12 +23,17 @@ int main(){
         opcao--;
         if(opcao > 2)
             printf("Opcao invalida\n");
-        else if(opcao >= 0)
-            fs[opcao](tarefas, &pos);
+        else if(opcao >= 0){
+            erro = fs[opcao](tarefas, &pos);
+            if(erro != OK)
+                printf("Erro: %d\n", erro);
+        }
         else
             printf("Sair...\n");
 
     } while(opcao >= 0);
 
-    fs[3](tarefas, &pos);
+    erro = fs[3](tarefas, &pos);
+    if(erro != OK)
+        printf("Erro ao salvar tarefas: %d\n", erro);
 }
